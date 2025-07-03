@@ -124,11 +124,17 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="device_driver.cpp" />
-    <ClCompile Include="main.cpp" />
+    <ClCompile Include="main.cpp">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'"> %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'"> %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"> %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'"> %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
     <ClCompile Include="flash_memory_device.h" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="device_driver.h" />
+    <ClInclude Include="device_driver_exception.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

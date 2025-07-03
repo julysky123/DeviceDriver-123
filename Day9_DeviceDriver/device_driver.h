@@ -9,9 +9,8 @@ public:
     void write(long address, int data);
 
 private:
-    static constexpr int MEMORY_READ_COUNT = 5;
-    bool isSame(char first, char second);
-    bool isEmpty(long address);
+    void checkReadPostCondition(int firstReadValue, long address);
+    void checkWritePreCondition(long address);
 protected:
     FlashMemoryDevice* m_hardware;
 };

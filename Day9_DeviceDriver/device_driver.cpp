@@ -7,28 +7,32 @@ DeviceDriver::DeviceDriver(FlashMemoryDevice* hardware) : m_hardware(hardware)
 
 int DeviceDriver::read(long address)
 {
-    int firstReadValue = static_cast<int>(m_hardware->read(address));
-    for (int tryCount = 2; tryCount <= MEMORY_READ_COUNT; tryCount++){
-        int value = static_cast<int>(m_hardware->read(address));
-        if(isSame(firstReadValue, value)) continue;
+    int result = static_cast<int>(m_hardware->read(address));
+    checkReadPostCondition(result, address);
+    return result;
+}
+
+void DeviceDriver::checkReadPostCondition(int result, long address)
+{
+    static constexpr int TEST_READ_COUNT = 4;
+    for (int tryCount = 0; tryCount < TEST_READ_COUNT; tryCount++) {
+        int testValue = static_cast<int>(m_hardware->read(address));
+        if (result == testValue) continue;
         throw ReadFailException("The hardware returns an inconsistent value.\n");
     }
-    return firstReadValue;
 }
 
 void DeviceDriver::write(long address, int data)
 {
-    if (isEmpty(address) == false) {
-        throw WriteFailException("The value is already written to memory.\n");
-    }
+    checkWritePreCondition(address);
     m_hardware->write(address, static_cast<unsigned char>(data));
 }
 
-bool DeviceDriver::isEmpty(long address)
+void DeviceDriver::checkWritePreCondition(long address)
 {
-    return read(address) == 0xff;
+    static constexpr unsigned int EMPTY = 0xFF;
+    if (read(address) != EMPTY) {
+        throw WriteFailException("There's something already written in memory.\n");
+    }
 }
 
-bool DeviceDriver::isSame(char first, char second) {
-    return first == second;
-}

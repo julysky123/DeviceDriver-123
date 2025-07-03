@@ -5,7 +5,7 @@ class DeviceDriver
 {
 public:
     DeviceDriver(FlashMemoryDevice* hardware);
-    int read(long address);
+    virtual int read(long address);
     void write(long address, int data);
 
 private:

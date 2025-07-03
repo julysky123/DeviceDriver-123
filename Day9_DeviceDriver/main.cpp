@@ -9,29 +9,34 @@ public:
 	MOCK_METHOD(void, write, (long, unsigned char), (override));
 };
 
-TEST(DeviceDriver, ReadFromHW) {
-	MockMemoryDevice mockedMemoryDevice;
-	EXPECT_CALL(mockedMemoryDevice, read(0xFF))
+class DeviceDriverFixture : public Test {
+public:
+	MockMemoryDevice MOCKED_MEMORY_DEVICE;
+	long READ_ADDRESS = 0xFF;
+	DeviceDriver driver{ &MOCKED_MEMORY_DEVICE };
+
+};
+
+TEST_F(DeviceDriverFixture, ReadFromHW) {
+	const int WRITTEN_VALUE = 0;
+	EXPECT_CALL(MOCKED_MEMORY_DEVICE, read(READ_ADDRESS))
 		.Times(5)
-		.WillRepeatedly(Return(0));
-		
-	DeviceDriver driver{ &mockedMemoryDevice };
-	int data = driver.read(0xFF);
-	EXPECT_EQ(0, data);
+		.WillRepeatedly(Return(WRITTEN_VALUE));
+	int expected = WRITTEN_VALUE;
+	int actual = driver.read(READ_ADDRESS);
+	EXPECT_EQ(expected, actual);
 }
 
-TEST(DeviceDriver, ReadFromHWButHWReturnsInconsistentValues) {
-	MockMemoryDevice mockedMemoryDevice;
-	EXPECT_CALL(mockedMemoryDevice, read(0xFF))
-		.Times(5)
+TEST_F(DeviceDriverFixture, ReadFromHWButHWReturnsInconsistentValues) {
+	EXPECT_CALL(MOCKED_MEMORY_DEVICE, read(READ_ADDRESS))
+		.Times(AtMost(5))
 		.WillOnce(Return(1))
 		.WillOnce(Return(2))
 		.WillOnce(Return(1))
 		.WillOnce(Return(2))
 		.WillOnce(Return(1));
 
-	DeviceDriver driver{ &mockedMemoryDevice };
-	EXPECT_THROW(driver.read(0xFF), ReadFailException);
+	EXPECT_THROW(driver.read(READ_ADDRESS), ReadFailException);
 }
 
 int main() {

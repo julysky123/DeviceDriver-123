@@ -22,7 +22,9 @@ protected:
 	}
 public:
 	MockMemoryDevice MOCKED_MEMORY_DEVICE;
+	MockDeviceDriver MOCKED_DEVICE_DRIVER{ &MOCKED_MEMORY_DEVICE };
 	long MEMORY_ADDRESS = 0xFF;
+	const int WRITING_DATA = 0x3;
 	DeviceDriver* driver;
 	static constexpr int DELETED_VALUE = 0xFF;
 };
@@ -50,24 +52,23 @@ TEST_F(DeviceDriverFixture, ReadFromHWButHWReturnsInconsistentValues) {
 }
 
 TEST_F(DeviceDriverFixture, WriteToHW) {
-	MockDeviceDriver mockedDeviceDriver{ &MOCKED_MEMORY_DEVICE };
-	driver = &mockedDeviceDriver;
-	const int WRITING_DATA = 0x3;
-	EXPECT_CALL(mockedDeviceDriver, read(0xff))
-		.Times(1)
-		.WillRepeatedly(Return(DELETED_VALUE));
 	EXPECT_CALL(MOCKED_MEMORY_DEVICE, write(MEMORY_ADDRESS, WRITING_DATA))
 		.Times(1);
+	EXPECT_CALL(MOCKED_DEVICE_DRIVER, read(MEMORY_ADDRESS))
+		.Times(1)
+		.WillRepeatedly(Return(DELETED_VALUE));
+	driver = &MOCKED_DEVICE_DRIVER;
+	
 	driver->write(MEMORY_ADDRESS, WRITING_DATA);
 }
 
 TEST_F(DeviceDriverFixture, WriteToHWButAlreadyDataWritten) {
-	MockDeviceDriver mockedDeviceDriver{ &MOCKED_MEMORY_DEVICE };
-	driver = &mockedDeviceDriver;
-	const int WRITING_DATA = 0x3;
-	EXPECT_CALL(mockedDeviceDriver, read(0xff))
+	const char ALREADY_WRITTEN_VALUE = 0x7;
+	EXPECT_CALL(MOCKED_DEVICE_DRIVER, read(MEMORY_ADDRESS))
 		.Times(1)
-		.WillRepeatedly(Return(0x7));
+		.WillRepeatedly(Return(ALREADY_WRITTEN_VALUE));
+	driver = &MOCKED_DEVICE_DRIVER;
+
 	EXPECT_THROW(driver->write(MEMORY_ADDRESS, WRITING_DATA), WriteFailException);
 }
 

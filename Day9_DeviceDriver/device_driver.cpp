@@ -7,9 +7,9 @@ DeviceDriver::DeviceDriver(FlashMemoryDevice* hardware) : m_hardware(hardware)
 
 int DeviceDriver::read(long address)
 {
-    int firstReadValue = m_hardware->read(address);
+    int firstReadValue = static_cast<int>(m_hardware->read(address));
     for (int tryCount = 2; tryCount <= MEMORY_READ_COUNT; tryCount++){
-        int value = m_hardware->read(address);
+        int value = static_cast<int>(m_hardware->read(address));
         if(isSame(firstReadValue, value)) continue;
         throw ReadFailException("The hardware returns an inconsistent value.\n");
     }
@@ -18,10 +18,15 @@ int DeviceDriver::read(long address)
 
 void DeviceDriver::write(long address, int data)
 {
-    if (read(address) != 0xff) {
+    if (isEmpty(address) == false) {
         throw WriteFailException("The value is already written to memory.\n");
     }
-    m_hardware->write(address, (unsigned char)data);
+    m_hardware->write(address, static_cast<unsigned char>(data));
+}
+
+bool DeviceDriver::isEmpty(long address)
+{
+    return read(address) == 0xff;
 }
 
 bool DeviceDriver::isSame(char first, char second) {
